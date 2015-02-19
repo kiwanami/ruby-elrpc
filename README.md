@@ -114,7 +114,7 @@ Let we define the words *server* and *client*. *Server* is a process which opens
 
 This diagram shows the API usage and the relation of processes.
 
-![API Overview](https://raw.githubusercontent.com/kiwanami/emacs-epc/master/img/Overview.png)
+![EPC Overview](https://cacoo.com/diagrams/cFQgb5d5W9MphN8z-B5059.png)
 
 Please see the EPC document for the overview of EPC stack and protocol details.
 
