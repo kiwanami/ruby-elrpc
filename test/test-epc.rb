@@ -1,6 +1,7 @@
 #!/usr/bin/ruby
 
 require 'test/unit'
+require 'timeout'
 require 'elrpc'
 
 def base(file)
@@ -28,6 +29,21 @@ class TestEPC < Test::Unit::TestCase
         Process.kill("TERM",io.pid)
       end
       assert_true(port.to_i > 0)
+    end
+
+    test "Start server process" do
+      sv = nil
+      begin
+        timeout(5) do
+          sv = Elrpc.start_process(["ruby",base("_echo.rb")], 8888)
+          sv.stop
+          assert_true(true)
+        end
+      rescue  => e
+        puts e,e.backtrace
+        assert_true(false)
+        sv.stop_force if sv
+      end
     end
   end
 

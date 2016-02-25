@@ -5,6 +5,7 @@ require "socket"
 require "thread"
 require "monitor"
 require "logger"
+require "timeout"
 
 require "elparser"
 
@@ -54,8 +55,8 @@ module Elrpc
     return client
   end
 
-  def self.start_process(cmd)
-    svr = Service.new(cmd)
+  def self.start_process(cmd, port = nil)
+    svr = Service.new(cmd, port)
     svr.start
     return svr
   end
@@ -66,8 +67,9 @@ module Elrpc
     attr :output
 
     # cmd = ["ruby", "_call.rb"]
-    def initialize(cmd)
+    def initialize(cmd, port)
       @cmd = cmd
+      @port = port
     end
 
     def _start_logger
@@ -82,9 +84,25 @@ module Elrpc
 
     def start
       @io = IO.popen(@cmd)
-      @port = @io.readline.to_i
+      if port.nil?
+        @port = @io.readline.to_i
+      end
       @output = nil
       @thread = _start_logger
+      # wait for port
+      timeout(4) do
+        loop do
+          begin
+            socket = TCPSocket.open("127.0.0.1", @port)
+            socket.close
+            #puts("Peer port is OK.")
+            break
+          rescue => e
+            #puts("Peer port is not opened. Try next time...")
+            sleep(0.2)
+          end
+        end
+      end
       @client = Elrpc.start_client(@port)
       return self
     end
@@ -149,6 +167,9 @@ module Elrpc
     def message
       "#{@_classname} : #{@_message}"
     end
+    def to_s
+      message
+    end
 
     def remote_classname
       @_classname
@@ -159,6 +180,7 @@ module Elrpc
     def remote_backtrace
       @_backtrace
     end
+
   end
 
   class EPCStackError < StandardError
@@ -170,6 +192,9 @@ module Elrpc
 
     def message
       "#{@_classname} : #{@_message}"
+    end
+    def to_s
+      message
     end
 
     def remote_classname
