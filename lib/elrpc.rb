@@ -529,7 +529,8 @@ module Elrpc
             @logger.debug "[rcvloop] Socket closed!"
             break
           end
-          @logger.debug "Parse : #{body}"
+          body.force_encoding("utf-8")
+          @logger.debug "Parse : #{body}/#{body.encoding}"
           ast = parser.parse(body)
           raise "Unexpected multiple s-expression : #{body}" if ast.size != 1
           ast = ast[0].to_ruby
